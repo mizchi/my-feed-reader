@@ -112,7 +112,8 @@ window.Actions =
       update?()
 
   openSelectedEntry: ->
-    entry = store.feedList[store.feedCursor]?.entries[store.entryCursor]
+    feedList = (if store.unread then store.unreadFeedList else store.feedList)
+    entry = feedList[store.feedCursor]?.entries[store.entryCursor]
 
     clickEvent = document.createEvent('MouseEvents')
     clickEvent.initMouseEvent('click', true, true, window, 0, 0, 0, 0, false, false, false, false, 1, null)
