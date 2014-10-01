@@ -44,7 +44,7 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(global) {var App, Entry, EntryList, Feed, FeedContainer, FeedList, Header, Kup, buildUnreadEntries, g, keymap, socket, startApp, _;
+	/* WEBPACK VAR INJECTION */(function(global) {var App, Entry, EntryList, Feed, FeedContainer, FeedList, Header, Help, Kup, buildUnreadEntries, g, initializeStore, keymap, startApp, _;
 
 	g = typeof window !== "undefined" && window !== null ? window : global;
 
@@ -56,13 +56,18 @@
 
 	g.moment = __webpack_require__(2);
 
-	window.store = {
-	  name: 'reader',
-	  feedList: [],
-	  unreadFeedList: [],
-	  feedCursor: 0,
-	  entryCursor: 0,
-	  unread: true
+	window.store = null;
+
+	initializeStore = function() {
+	  return window.store = {
+	    showHelp: true,
+	    name: 'reader',
+	    feedList: [],
+	    unreadFeedList: [],
+	    feedCursor: 0,
+	    entryCursor: 0,
+	    unread: true
+	  };
 	};
 
 	buildUnreadEntries = function() {
@@ -97,6 +102,16 @@
 	    buildUnreadEntries();
 	    return typeof update === "function" ? update() : void 0;
 	  },
+	  refresh: function() {
+	    var buf;
+	    buf = _.cloneDeep(store);
+	    initializeStore();
+	    if (typeof update === "function") {
+	      update();
+	    }
+	    window.store = buf;
+	    return typeof update === "function" ? update() : void 0;
+	  },
 	  updateTitle: function(_arg) {
 	    var buf, entries, feedTitle, feedUrl, index;
 	    feedTitle = _arg.feedTitle, entries = _arg.entries, feedUrl = _arg.feedUrl;
@@ -127,8 +142,9 @@
 	    return typeof app !== "undefined" && app !== null ? app.forceUpdate() : void 0;
 	  },
 	  selectNextFeed: function() {
-	    var feed, maxTimestamp, timestamps;
-	    if (store.feedList.length > store.feedCursor + 1) {
+	    var feed, feedList, maxTimestamp, timestamps;
+	    feedList = store.unread ? store.unreadFeedList : store.feedList;
+	    if (feedList.length > store.feedCursor + 1) {
 	      if (store.unread) {
 	        feed = store.unreadFeedList[store.feedCursor];
 	        timestamps = feed.entries.map(function(f) {
@@ -185,18 +201,77 @@
 	      update();
 	    }
 	    return console.log('toggle unread flag to:', store.unread);
+	  },
+	  requestCrawl: function() {
+	    return socket.emit('request-crawl');
+	  },
+	  toggleHelp: function() {
+	    store.showHelp = !store.showHelp;
+	    return typeof update === "function" ? update() : void 0;
 	  }
 	};
 
-	Header = React.createClass({
+	Help = React.createClass({
 	  render: function() {
-	    var name, unread, _ref;
-	    _ref = this.props, name = _ref.name, unread = _ref.unread;
-	    return Kup(function($) {
-	      return $.div(function() {
-	        return $.span(("Reader: " + name + ":") + (unread ? 'unread' : ''));
-	      });
-	    });
+	    return Kup((function(_this) {
+	      return function($) {
+	        return $.div(function() {
+	          $.h3('keybind:');
+	          $.hr();
+	          $.dl({
+	            className: 'help'
+	          }, function() {
+	            $.dt('h');
+	            $.dd('toggle help');
+	            $.dt('s');
+	            $.dd('next feed');
+	            $.dt('a');
+	            $.dd('previous feed');
+	            $.dt('j');
+	            $.dd('next entry');
+	            $.dt('k');
+	            $.dd('previous entry');
+	            $.dt('r');
+	            $.dd('request crawling to server');
+	            $.dt('u');
+	            return $.dd('toggle read/unread to show');
+	          });
+	          return $.hr();
+	        });
+	      };
+	    })(this));
+	  }
+	});
+
+	Header = React.createClass({
+	  onClickRefresh: function() {
+	    localStorage.clear();
+	    return location.reload();
+	  },
+	  onClickHelp: function() {
+	    return Actions.toggleHelp();
+	  },
+	  render: function() {
+	    var name, showHelp, unread, _ref;
+	    _ref = this.props, name = _ref.name, unread = _ref.unread, showHelp = _ref.showHelp;
+	    return Kup((function(_this) {
+	      return function($) {
+	        return $.div(function() {
+	          $.span(("Reader: " + name + ":") + (unread ? 'unread' : ''));
+	          $.span('|');
+	          $.button({
+	            onClick: _this.onClickHelp
+	          }, 'help');
+	          $.span('|');
+	          $.button({
+	            onClick: _this.onClickRefresh
+	          }, 'refresh');
+	          if (showHelp) {
+	            return $.component(Help, {});
+	          }
+	        });
+	      };
+	    })(this));
 	  }
 	});
 
@@ -208,8 +283,7 @@
 	      return $.div({
 	        key: title
 	      }, function() {
-	        $.h4(title);
-	        return $.span(summary);
+	        return $.h4(title);
 	      });
 	    });
 	  }
@@ -228,13 +302,12 @@
 	        style: {
 	          height: 800,
 	          overflow: 'scroll',
-	          backgroundColor: 'linen',
 	          padding: 0
 	        }
 	      }, function() {
 	        var entry, index, opts, selected, _i, _len, _ref1, _results;
 	        if (entryCursor > 0) {
-	          $.li('<<' + entryCursor);
+	          $.li('<<' + (entryCursor + 1) + '/' + entries.length);
 	        }
 	        _ref1 = entries.slice(entryCursor);
 	        _results = [];
@@ -272,7 +345,11 @@
 	    feedTitle = feed.feedTitle, entries = feed.entries;
 	    return Kup(function($) {
 	      return $.div(function() {
-	        $.h2(feedTitle);
+	        $.h2({
+	          style: {
+	            margin: 0
+	          }
+	        }, feedTitle);
 	        return $.component(EntryList, {
 	          entries: entries,
 	          entryCursor: entryCursor,
@@ -311,11 +388,11 @@
 	        $.div({
 	          className: 'left-pane',
 	          style: {
-	            width: '30%'
+	            width: '25%'
 	          }
 	        }, function() {
 	          if (feedCursor > 0) {
-	            $.span('<<' + feedCursor);
+	            $.span('<<' + (feedCursor + 1) + '/' + feedList.length);
 	          }
 	          return $.ul({
 	            className: 'feed-list',
@@ -347,13 +424,15 @@
 	        });
 	        return $.div({
 	          style: {
-	            width: '70%'
+	            width: '75%'
 	          }
 	        }, function() {
-	          return $.component(FeedContainer, {
-	            feed: selectedFeed,
-	            entryCursor: entryCursor
-	          });
+	          if (selectedFeed != null) {
+	            return $.component(FeedContainer, {
+	              feed: selectedFeed,
+	              entryCursor: entryCursor
+	            });
+	          }
 	        });
 	      });
 	    });
@@ -365,8 +444,8 @@
 	    return store;
 	  },
 	  render: function() {
-	    var entryCursor, feedCursor, feedList, name, unread, _ref;
-	    _ref = this.state, name = _ref.name, feedList = _ref.feedList, feedCursor = _ref.feedCursor, entryCursor = _ref.entryCursor, unread = _ref.unread;
+	    var entryCursor, feedCursor, feedList, name, showHelp, unread, _ref;
+	    _ref = this.state, name = _ref.name, feedList = _ref.feedList, feedCursor = _ref.feedCursor, entryCursor = _ref.entryCursor, unread = _ref.unread, showHelp = _ref.showHelp;
 	    if (unread) {
 	      feedList = this.state.unreadFeedList;
 	    }
@@ -383,26 +462,32 @@
 	      }, function() {
 	        $.component(Header, {
 	          name: name,
-	          unread: unread
+	          unread: unread,
+	          showHelp: showHelp
 	        });
-	        return $.component(FeedList, {
-	          feedList: feedList,
-	          feedCursor: feedCursor,
-	          entryCursor: entryCursor
-	        });
+	        if (feedList.length > 0) {
+	          return $.component(FeedList, {
+	            feedList: feedList,
+	            feedCursor: feedCursor,
+	            entryCursor: entryCursor
+	          });
+	        } else {
+	          return $.div("Now loading...");
+	        }
 	      });
 	    });
 	  }
 	});
 
 	startApp = function() {
+	  initializeStore();
 	  window.update = function() {
 	    return app.setState(store);
 	  };
 	  return window.app = React.renderComponent(App({}), document.body);
 	};
 
-	socket = io.connect();
+	window.socket = io.connect();
 
 	keymap = {
 	  a: 65,
@@ -411,7 +496,10 @@
 	  k: 75,
 	  o: 79,
 	  '/': 191,
-	  u: 85
+	  u: 85,
+	  r: 82,
+	  w: 87,
+	  h: 72
 	};
 
 	window.addEventListener('keydown', function(ev) {
@@ -429,25 +517,32 @@
 	      return Actions.openSelectedEntry();
 	    case keymap.u:
 	      return Actions.toggleUnread();
+	    case keymap.r:
+	      return Actions.requestCrawl();
+	    case keymap.h:
+	      return Actions.toggleHelp();
 	  }
 	});
 
+	socket.on('init', function(data) {
+	  console.log('init with', data);
+	  Actions.initData(data);
+	  return Actions.toggleHelp();
+	});
+
+	socket.on('update-feed', function(_arg) {
+	  var entries, feedTitle, feedUrl;
+	  feedTitle = _arg.feedTitle, entries = _arg.entries, feedUrl = _arg.feedUrl;
+	  console.log('update-feed', feedTitle);
+	  return Actions.updateTitle({
+	    feedTitle: feedTitle,
+	    entries: entries,
+	    feedUrl: feedUrl
+	  });
+	});
+
 	window.addEventListener('load', function() {
-	  socket.on('init', function(data) {
-	    console.log('init with', data);
-	    Actions.initData(data);
-	    return startApp();
-	  });
-	  return socket.on('update-feed', function(_arg) {
-	    var entries, feedTitle, feedUrl;
-	    feedTitle = _arg.feedTitle, entries = _arg.entries, feedUrl = _arg.feedUrl;
-	    console.log('update-feed', feedTitle);
-	    return Actions.updateTitle({
-	      feedTitle: feedTitle,
-	      entries: entries,
-	      feedUrl: feedUrl
-	    });
-	  });
+	  return startApp();
 	});
 	
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))

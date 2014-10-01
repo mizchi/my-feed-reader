@@ -67,22 +67,24 @@ class Crawler extends EventEmitter
     else
       @contents.feedList.push {feedTitle, entries, feedUrl}
 
+  crawl: -> new Promise (done) =>
+    do co =>
+      data = yield loadData()
+      for feed in getFeedList data
+        console.log 'fetching:', feed.title
+        feedUrl = feed.xmlUrl
+        entries = yield crawl feedUrl
+        addTimestamp entries # some feed doesn't have date
+
+        feedTitle = feed.title
+        @appendFeed {feedTitle, entries, feedUrl}
+        @emit 'update-feed', {feedTitle, entries, feedUrl}
+      done()
+
   start: ->
     do co =>
       while true
         console.log '[fetch start]'
-        data = yield loadData()
-        for feed in getFeedList data
-          console.log 'fetching:', feed.title
-          feedUrl = feed.xmlUrl
-          entries = yield crawl feedUrl
-          addTimestamp entries # some feed doesn't have date
-
-          feedTitle = feed.title
-          @appendFeed {feedTitle, entries, feedUrl}
-          @emit 'update-feed', {feedTitle, entries, feedUrl}
-
+        yield @crawl()
         console.log '[fetch end]'
-        console.log @contents
-
         yield wait(1000 * 60 * 12)

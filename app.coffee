@@ -16,6 +16,15 @@ io.on 'connection', (socket) ->
   console.log 'initialize', socket.id
   socket.emit 'init', crawler.contents
 
+  running = false
+  socket.on 'request-crawl', ->
+    unless running
+      running = true
+      console.log 'start crawler'
+      crawler.crawl().then -> running = false
+    else
+      console.log 'crawler is running'
+
 crawler.on 'update-feed', ({feedTitle, entries, feedUrl}) ->
   io.sockets.emit 'update-feed', {feedTitle, entries, feedUrl}
 

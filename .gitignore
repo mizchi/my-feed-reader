@@ -54,5 +54,4 @@ node_modules
 .lock-wscript
 
 # Application Domain
-export.xml
-
+# export.xml

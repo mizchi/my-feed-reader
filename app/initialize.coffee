@@ -9,13 +9,18 @@ g.moment = require 'moment'
 ## Store
 ###########
 
-window.store =
-  name: 'reader'
-  feedList: []
-  unreadFeedList: []
-  feedCursor: 0
-  entryCursor: 0
-  unread: true
+
+window.store = null
+
+initializeStore = ->
+  window.store =
+    showHelp: true
+    name: 'reader'
+    feedList: []
+    unreadFeedList: []
+    feedCursor: 0
+    entryCursor: 0
+    unread: true
 
 buildUnreadEntries = ->
   unreadFeedList = []
@@ -44,6 +49,14 @@ window.Actions =
 
     update?()
 
+  refresh: ->
+    buf = _.cloneDeep store
+    initializeStore()
+    update?()
+
+    window.store = buf
+    update?()
+
   updateTitle: ({feedTitle, entries, feedUrl}) ->
     index = _.findIndex store.feedList, (feed) => feed.feedTitle is feedTitle
     if index > -1
@@ -63,7 +76,9 @@ window.Actions =
     app?.forceUpdate()
 
   selectNextFeed: ->
-    if store.feedList.length > store.feedCursor + 1
+    feedList = if store.unread then store.unreadFeedList else store.feedList
+
+    if feedList.length > store.feedCursor + 1
       if store.unread
         feed = store.unreadFeedList[store.feedCursor]
         timestamps = feed.entries.map (f) -> moment(f.pubdate ? f.pubDate ? f.date).unix()
@@ -112,16 +127,68 @@ window.Actions =
     update?()
     console.log 'toggle unread flag to:', store.unread
 
+  requestCrawl: ->
+    socket.emit 'request-crawl'
+
+  toggleHelp: ->
+    store.showHelp = !store.showHelp
+    update?()
+
 ###########
 ## Component
 ###########
 
-Header = React.createClass
+
+Help = React.createClass
   render: ->
-    {name, unread} = @props
-    Kup ($) ->
+    Kup ($) =>
       $.div ->
+        $.h3 'keybind:'
+        $.hr()
+        $.dl className: 'help', ->
+          $.dt 'h'
+          $.dd  'toggle help'
+
+          $.dt 's'
+          $.dd  'next feed'
+
+          $.dt 'a'
+          $.dd  'previous feed'
+
+          $.dt 'j'
+          $.dd  'next entry'
+
+          $.dt 'k'
+          $.dd  'previous entry'
+
+          $.dt 'r'
+          $.dd  'request crawling to server'
+
+          $.dt 'u'
+          $.dd  'toggle read/unread to show'
+
+        $.hr()
+
+Header = React.createClass
+  onClickRefresh: ->
+    localStorage.clear()
+    location.reload()
+
+  onClickHelp: ->
+    Actions.toggleHelp()
+
+  render: ->
+    {name, unread, showHelp} = @props
+    Kup ($) =>
+      $.div =>
         $.span "Reader: #{name}:" + (if unread then 'unread' else '')
+        $.span '|'
+        $.button onClick: @onClickHelp, 'help'
+        $.span '|'
+        $.button onClick: @onClickRefresh, 'refresh'
+
+        if showHelp
+          $.component Help, {}
 
 Entry = React.createClass
   render: ->
@@ -130,17 +197,16 @@ Entry = React.createClass
       $.div key: title, ->
         $.h4 title
         # $.span dangerouslySetInnerHTML:{__html: summary}
-        $.span summary
-
+        # $.span summary
 
 window.jQuery = require 'jquery'
 EntryList = React.createClass
   render: ->
     {entries, entryCursor, feedTitle} = @props
     Kup ($) ->
-      $.ul className: 'entry-list', ref: 'scrollParent', style: {height: 800, overflow: 'scroll', backgroundColor: 'linen', padding: 0}, ->
+      $.ul className: 'entry-list', ref: 'scrollParent', style: {height: 800, overflow: 'scroll', padding: 0}, ->
         if entryCursor > 0
-          $.li '<<'+entryCursor
+          $.li '<<'+(entryCursor+1)+'/'+entries.length
         for entry, index in entries[entryCursor..]
           selected = index is 0
 
@@ -167,7 +233,7 @@ Feed = React.createClass
 
     Kup ($) ->
       $.div ->
-        $.h2 feedTitle
+        $.h2 {style: {margin: 0}}, feedTitle
         $.component EntryList, {entries, entryCursor, feedTitle}
 
 FeedContainer = React.createClass
@@ -183,9 +249,9 @@ FeedList = React.createClass
 
     Kup ($) ->
       $.div {className: 'container', style: {display: '-webkit-box'}}, ->
-        $.div className: 'left-pane', style: {width: '30%'}, ->
+        $.div className: 'left-pane', style: {width: '25%'}, ->
           if feedCursor > 0
-            $.span '<<'+feedCursor
+            $.span '<<'+(feedCursor+1)+'/'+feedList.length
 
           $.ul className: 'feed-list', ref: 'scrollParent', style: {height: 800}, ->
 
@@ -201,14 +267,15 @@ FeedList = React.createClass
 
               $.p opts, feed.feedTitle+"(#{ feed.entries.length })"
 
-        $.div style: {width: '70%'}, ->
-          $.component FeedContainer, {feed: selectedFeed, entryCursor: entryCursor}
+        $.div style: {width: '75%'}, ->
+          if selectedFeed?
+            $.component FeedContainer, {feed: selectedFeed, entryCursor: entryCursor}
 
 App = React.createClass
   getInitialState: -> store
 
   render: ->
-    {name, feedList, feedCursor, entryCursor, unread} = @state
+    {name, feedList, feedCursor, entryCursor, unread, showHelp} = @state
     if unread
       feedList = @state.unreadFeedList
 
@@ -220,19 +287,25 @@ App = React.createClass
         padding: 0
         overflow: 'hidden'
       }, ->
-        $.component Header, {name, unread}
-        $.component FeedList, {feedList, feedCursor, entryCursor}
+        $.component Header, {name, unread, showHelp}
+        if feedList.length > 0
+          $.component FeedList, {feedList, feedCursor, entryCursor}
+        else
+          $.div """
+          Now loading...
+          """
 
 ###########
 ## bootstrap
 ###########
 
 startApp = ->
+  initializeStore()
   window.update = ->
     app.setState store
   window.app = React.renderComponent (App {}), document.body
 
-socket = io.connect()
+window.socket = io.connect()
 
 keymap =
   a: 65
@@ -242,6 +315,9 @@ keymap =
   o: 79
   '/': 191
   u: 85
+  r: 82
+  w: 87
+  h: 72
 
 window.addEventListener 'keydown', (ev) ->
   console.log ev.keyCode
@@ -252,13 +328,18 @@ window.addEventListener 'keydown', (ev) ->
     when keymap.k then Actions.selectPrevEntry()
     when keymap.o then Actions.openSelectedEntry()
     when keymap.u then Actions.toggleUnread()
+    when keymap.r then Actions.requestCrawl()
+    when keymap.h then Actions.toggleHelp()
+    # when keymap.w then Actions.refresh()
+
+socket.on 'init', (data) ->
+  console.log('init with', data)
+  Actions.initData data
+  Actions.toggleHelp()
+
+socket.on 'update-feed', ({feedTitle, entries, feedUrl}) ->
+  console.log('update-feed', feedTitle)
+  Actions.updateTitle {feedTitle, entries, feedUrl}
 
 window.addEventListener 'load', ->
-  socket.on 'init', (data) ->
-    console.log('init with', data)
-    Actions.initData data
-    startApp()
-
-  socket.on 'update-feed', ({feedTitle, entries, feedUrl}) ->
-    console.log('update-feed', feedTitle)
-    Actions.updateTitle {feedTitle, entries, feedUrl}
+  startApp()
