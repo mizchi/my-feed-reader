@@ -1,0 +1,23 @@
+{
+  "name": "reader",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "co": "^3.1.0",
+    "feedparser": "^0.19.2",
+    "koa": "^0.12.2",
+    "koa-route": "^2.1.0",
+    "koa-router": "^3.4.0",
+    "koa-static": "^1.4.7",
+    "opmlparser": "^0.7.0",
+    "request": "^2.44.0",
+    "socket.io": "^1.1.0",
+    "xml2js": "^0.4.4"
+  }
+}
