@@ -38,6 +38,8 @@ $ gulp
 $ coffee --nodejs --harmony app.coffee
 ```
 
+open http://localhost:3000
+
 ## LiCENSE
 
 MIT
