@@ -39,7 +39,7 @@ $ gulp
 $ coffee --nodejs --harmony app.coffee
 ```
 
-open http://localhost:3000
+open http://localhost:2345
 
 ## LiCENSE
 

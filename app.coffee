@@ -28,4 +28,5 @@ io.on 'connection', (socket) ->
 crawler.on 'update-feed', ({feedTitle, entries, feedUrl}) ->
   io.sockets.emit 'update-feed', {feedTitle, entries, feedUrl}
 
-server.listen(3000)
+server.listen(2345)
+console.log 'start server', 2345

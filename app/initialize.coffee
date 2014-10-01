@@ -5,6 +5,46 @@ Kup = require('react-kup')(React)
 _ = require 'lodash'
 g.moment = require 'moment'
 
+
+## Utilities
+
+`
+var getBrowser = function(){
+    var ua = window.navigator.userAgent.toLowerCase();
+    var ver = window.navigator.appVersion.toLowerCase();
+    var name = 'unknown';
+
+    if (ua.indexOf("msie") != -1){
+        if (ver.indexOf("msie 6.") != -1){
+            name = 'ie6';
+        }else if (ver.indexOf("msie 7.") != -1){
+            name = 'ie7';
+        }else if (ver.indexOf("msie 8.") != -1){
+            name = 'ie8';
+        }else if (ver.indexOf("msie 9.") != -1){
+            name = 'ie9';
+        }else if (ver.indexOf("msie 10.") != -1){
+            name = 'ie10';
+        }else{
+            name = 'ie';
+        }
+    }else if(ua.indexOf('trident/7') != -1){
+        name = 'ie11';
+    }else if (ua.indexOf('chrome') != -1){
+        name = 'chrome';
+    }else if (ua.indexOf('safari') != -1){
+        name = 'safari';
+    }else if (ua.indexOf('opera') != -1){
+        name = 'opera';
+    }else if (ua.indexOf('firefox') != -1){
+        name = 'firefox';
+    }
+    return name;
+};
+`
+
+ua = getBrowser()
+
 ###########
 ## Store
 ###########
@@ -115,10 +155,13 @@ window.Actions =
     feedList = (if store.unread then store.unreadFeedList else store.feedList)
     entry = feedList[store.feedCursor]?.entries[store.entryCursor]
 
-    clickEvent = document.createEvent('MouseEvents')
-    clickEvent.initMouseEvent('click', true, true, window, 0, 0, 0, 0, false, false, false, false, 1, null)
-    console.log 'open', entry.link
-    jQuery('<a>').attr('href', entry.link)[0].dispatchEvent(clickEvent)
+    if ua is 'chrome'
+      clickEvent = document.createEvent('MouseEvents')
+      clickEvent.initMouseEvent('click', true, true, window, 0, 0, 0, 0, false, false, false, false, 1, null)
+      console.log 'open', entry.link
+      jQuery('<a>').attr('href', entry.link)[0].dispatchEvent(clickEvent)
+    else
+      window.open entry.link
 
   toggleUnread: ->
     store.unread = !store.unread
@@ -249,7 +292,7 @@ FeedList = React.createClass
     selectedFeed = feedList[feedCursor]
 
     Kup ($) ->
-      $.div {className: 'container', style: {display: '-webkit-box'}}, ->
+      $.div className: 'rss-reader-container', ->
         $.div className: 'left-pane', style: {width: '25%'}, ->
           if feedCursor > 0
             $.span '<<'+(feedCursor+1)+'/'+feedList.length
@@ -281,7 +324,7 @@ App = React.createClass
       feedList = @state.unreadFeedList
 
     Kup ($) ->
-      $.div className: 'container', style: {
+      $.div style: {
         width: '100%'
         height: 700
         margin: '0 auto'
