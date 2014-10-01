@@ -70,4 +70,4 @@ class Crawler extends EventEmitter
 
         console.log '[fetch end]'
         update()
-      , 60 * 1000
+      , 300 * 1000

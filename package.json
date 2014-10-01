@@ -10,7 +10,12 @@
   "license": "ISC",
   "dependencies": {
     "co": "^3.1.0",
+    "coffee-loader": "^0.7.2",
+    "coffee-script": "git://github.com/jashkenas/coffeescript",
     "feedparser": "^0.19.2",
+    "gulp": "^3.8.8",
+    "gulp-watch": "^1.0.7",
+    "gulp-webpack": "^0.4.1",
     "koa": "^0.12.2",
     "koa-route": "^2.1.0",
     "koa-router": "^3.4.0",
