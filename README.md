@@ -1,4 +1,4 @@
-# RSS Reader
+# My Feed Reader
 
 Livedoor reader like rss reader.
 
