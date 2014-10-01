@@ -8,7 +8,8 @@ Download export.xml(opml) from your livedoor reader.
 
 ## Features
 
-- No database!(use localhost)
+- No database!(use localStorage)
+- Push by websocket
 - Expect to run in localhost
 - Check only google chrome
 
