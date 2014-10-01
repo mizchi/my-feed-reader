@@ -44,7 +44,7 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(global) {var App, Entry, EntryList, Feed, FeedContainer, FeedList, Header, Kup, g, socket, startApp, _;
+	/* WEBPACK VAR INJECTION */(function(global) {var App, Entry, EntryList, Feed, FeedContainer, FeedList, Header, Kup, g, keymap, socket, startApp, _;
 
 	g = typeof window !== "undefined" && window !== null ? window : global;
 
@@ -63,26 +63,52 @@
 
 	window.Actions = {
 	  initData: function(data) {
-	    store.feedList = Object.keys(data).map(function(key) {
-	      return {
-	        title: key,
-	        contents: data[key]
-	      };
-	    });
-	    return update();
+	    store.feedList = data.feedList;
+	    return typeof update === "function" ? update() : void 0;
 	  },
-	  updateTitle: function(title, data) {
-	    var feed;
-	    feed = _.find(store.feedList, function(feed) {
-	      return feed.title === title;
-	    });
-	    store.feedList = Object.keys(data).map(function(key) {
-	      return {
-	        title: key,
-	        contents: data[key]
+	  updateTitle: function(_arg) {
+	    var entries, feedTitle, index;
+	    feedTitle = _arg.feedTitle, entries = _arg.entries;
+	    index = _.findIndex(store.feedList, (function(_this) {
+	      return function(feed) {
+	        return feed.feedTitle === feedTitle;
 	      };
-	    });
-	    return update();
+	    })(this));
+	    if (index > -1) {
+	      store.feedList[index].entries = entries;
+	    } else {
+	      store.feedList.push({
+	        feedTitle: feedTitle,
+	        entries: entries
+	      });
+	    }
+	    return typeof update === "function" ? update() : void 0;
+	  },
+	  selectNextFeed: function() {
+	    if (store.feedList.length > store.feedCursor + 1) {
+	      console.log('selectNextFeed');
+	      store.feedCursor++;
+	      store.entryCursor = 0;
+	      return typeof update === "function" ? update() : void 0;
+	    }
+	  },
+	  selectPrevFeed: function() {
+	    if (store.feedCursor > 0) {
+	      console.log('selectPrevFeed');
+	      store.feedCursor--;
+	      store.entryCursor = 0;
+	      return typeof update === "function" ? update() : void 0;
+	    }
+	  },
+	  selectNextEntry: function() {
+	    console.log('selectNextEntry');
+	    store.entryCursor++;
+	    return typeof update === "function" ? update() : void 0;
+	  },
+	  selectPrevEntry: function() {
+	    console.log('selectPrevEntry');
+	    store.entryCursor--;
+	    return typeof update === "function" ? update() : void 0;
 	  }
 	};
 
@@ -103,7 +129,11 @@
 	    return Kup(function($) {
 	      return $.div(function() {
 	        $.h4(title);
-	        return $.p(summary);
+	        return $.span({
+	          dangerouslySetInnerHTML: {
+	            __html: summary
+	          }
+	        });
 	      });
 	    });
 	  }
@@ -111,15 +141,19 @@
 
 	EntryList = React.createClass({
 	  render: function() {
-	    var entries;
-	    entries = this.props.entries;
+	    var entries, entryCursor, _ref;
+	    _ref = this.props, entries = _ref.entries, entryCursor = _ref.entryCursor;
 	    return Kup(function($) {
 	      return $.ul(function() {
-	        var entry, _i, _len, _results;
+	        var entry, index, _i, _len, _results;
 	        _results = [];
-	        for (_i = 0, _len = entries.length; _i < _len; _i++) {
-	          entry = entries[_i];
-	          _results.push($.li(function() {
+	        for (index = _i = 0, _len = entries.length; _i < _len; index = ++_i) {
+	          entry = entries[index];
+	          _results.push($.li({
+	            style: {
+	              backgroundColor: index === entryCursor ? 'yellow' : 'white'
+	            }
+	          }, function() {
 	            return $.component(Entry, entry);
 	          }));
 	        }
@@ -131,13 +165,15 @@
 
 	Feed = React.createClass({
 	  render: function() {
-	    var entries, feedTitle, _ref;
-	    _ref = this.props, feedTitle = _ref.feedTitle, entries = _ref.entries;
+	    var entries, entryCursor, feed, feedTitle, _ref;
+	    _ref = this.props, feed = _ref.feed, entryCursor = _ref.entryCursor;
+	    feedTitle = feed.feedTitle, entries = feed.entries;
 	    return Kup(function($) {
 	      return $.div(function() {
 	        $.h2(feedTitle);
 	        return $.component(EntryList, {
-	          entries: entries
+	          entries: entries,
+	          entryCursor: entryCursor
 	        });
 	      });
 	    });
@@ -146,19 +182,23 @@
 
 	FeedContainer = React.createClass({
 	  render: function() {
-	    var feed;
-	    feed = this.props.feed;
+	    var entryCursor, feed, _ref;
+	    _ref = this.props, feed = _ref.feed, entryCursor = _ref.entryCursor;
 	    return Kup(function($) {
-	      return $.component(Feed, feed);
+	      return $.component(Feed, {
+	        feed: feed,
+	        entryCursor: entryCursor
+	      });
 	    });
 	  }
 	});
 
 	FeedList = React.createClass({
 	  render: function() {
-	    var feed, feedList;
-	    feedList = this.props.feedList;
-	    feed = feedList[store.feedCursor];
+	    var entryCursor, feedCursor, feedList, selectedFeed, _ref;
+	    console.log('feedList', feedCursor);
+	    _ref = this.props, feedList = _ref.feedList, feedCursor = _ref.feedCursor, entryCursor = _ref.entryCursor;
+	    selectedFeed = feedList[feedCursor];
 	    return Kup(function($) {
 	      return $.div({
 	        className: 'container',
@@ -172,11 +212,15 @@
 	          }
 	        }, function() {
 	          return $.ul(function() {
-	            var _i, _len, _results;
+	            var feed, _i, _len, _results;
 	            _results = [];
 	            for (_i = 0, _len = feedList.length; _i < _len; _i++) {
 	              feed = feedList[_i];
-	              _results.push($.h2({}, feed.feedTitle));
+	              _results.push($.h2({
+	                style: {
+	                  color: feed.feedTitle === selectedFeed.feedTitle ? 'red' : 'black'
+	                }
+	              }, feed.feedTitle));
 	            }
 	            return _results;
 	          });
@@ -187,7 +231,8 @@
 	          }
 	        }, function() {
 	          return $.component(FeedContainer, {
-	            feed: feed
+	            feed: selectedFeed,
+	            entryCursor: entryCursor
 	          });
 	        });
 	      });
@@ -200,8 +245,9 @@
 	    return store;
 	  },
 	  render: function() {
-	    var feedList, name, _ref;
-	    _ref = this.state, name = _ref.name, feedList = _ref.feedList;
+	    var entryCursor, feedCursor, feedList, name, _ref;
+	    console.log('update!');
+	    _ref = this.state, name = _ref.name, feedList = _ref.feedList, feedCursor = _ref.feedCursor, entryCursor = _ref.entryCursor;
 	    return Kup(function($) {
 	      return $.div({
 	        className: 'container'
@@ -210,7 +256,9 @@
 	          name: name
 	        });
 	        return $.component(FeedList, {
-	          feedList: feedList
+	          feedList: feedList,
+	          feedCursor: feedCursor,
+	          entryCursor: entryCursor
 	        });
 	      });
 	    });
@@ -218,37 +266,49 @@
 	});
 
 	startApp = function() {
+	  window.update = function() {
+	    return app.setState(store);
+	  };
 	  return window.app = React.renderComponent(App({}), document.body);
-	};
-
-	window.update = function() {
-	  return app.setState(store);
 	};
 
 	socket = io.connect();
 
+	keymap = {
+	  a: 65,
+	  s: 83,
+	  j: 74,
+	  k: 75
+	};
+
+	window.addEventListener('keydown', function(ev) {
+	  console.log(ev, ev.keyCode);
+	  switch (parseInt(ev.keyCode)) {
+	    case keymap.s:
+	      return Actions.selectNextFeed();
+	    case keymap.a:
+	      return Actions.selectPrevFeed();
+	    case keymap.j:
+	      return Actions.selectNextEntry();
+	    case keymap.k:
+	      return Actions.selectPrevEntry();
+	  }
+	});
+
 	window.addEventListener('load', function() {
 	  socket.on('init', function(data) {
 	    console.log('init with', data);
-	    store.feedList = data.feedList;
+	    Actions.initData(data);
 	    return startApp();
 	  });
 	  return socket.on('update-feed', function(_arg) {
-	    var entries, feedTitle, index;
+	    var entries, feedTitle;
 	    feedTitle = _arg.feedTitle, entries = _arg.entries;
-	    index = _.findIndex(store.feedList, (function(_this) {
-	      return function(feed) {
-	        return feed.feedTitle === feedTitle;
-	      };
-	    })(this));
-	    if (index > -1) {
-	      return store.feedList[index].entries = entries;
-	    } else {
-	      return store.feedList.push({
-	        feedTitle: feedTitle,
-	        entries: entries
-	      });
-	    }
+	    console.log('update-feed', feedTitle);
+	    return Actions.updateTitle({
+	      feedTitle: feedTitle,
+	      entries: entries
+	    });
 	  });
 	});
 	
