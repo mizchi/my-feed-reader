@@ -1,5 +1,6 @@
 fs = require 'fs'
 co = require 'co'
+_  = require 'lodash'
 request = require 'request'
 {parseString} = require 'xml2js'
 FeedParser = require 'feedparser'
@@ -52,22 +53,32 @@ wait = (ms) -> new Promise (done) ->
 module.exports =
 class Crawler extends EventEmitter
   constructor: ->
-    @contents = {} # Map<title: String, Array<FeedContent>>
+    @contents =
+      feedList: [] # {feedTitle, }[]
+
+  appendFeed: ({feedTitle, entries}) ->
+    index = _.findIndex @contents.feedList, (feed) => feed.feedTitle is feedTitle
+    if index > -1
+      @contents.feedList[index].entries = entries
+    else
+      @contents.feedList.push {feedTitle, entries}
 
   start: ->
-    do update = =>
-      setTimeout => do co =>
+    do co =>
+      while true
         console.log '[fetch start]'
         data = yield loadData()
-        for feedData in getFeedList data
-          console.log 'fetching:', feedData.title
-          feedContents = yield crawl feedData.xmlUrl
-          @contents[feedData.title] = feedContents
+        for feed in getFeedList data
+          console.log 'fetching:', feed.title
+          entries = yield crawl feed.xmlUrl
+          feedTitle = feed.title
 
-          @emit 'update-feed',
-            title: feedData.title
-            contents: feedContents
+          console.log '---f-f-f-f-f-', feedTitle, entries.length
+
+          @appendFeed {feedTitle, entries}
+          @emit 'update-feed', {feedTitle, entries}
 
         console.log '[fetch end]'
-        update()
-      , 300 * 1000
+        console.log @contents
+
+        yield wait(1000 * 60 * 12)

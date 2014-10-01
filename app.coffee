@@ -16,7 +16,7 @@ io.on 'connection', (socket) ->
   console.log 'initialize', socket.id
   socket.emit 'init', crawler.contents
 
-crawler.on 'update-feed', ({title, contents}) ->
-  io.sockets.emit 'update-feed', {title, contents}
+crawler.on 'update-feed', ({feedTitle, entries}) ->
+  io.sockets.emit 'update-feed', {feedTitle, entries}
 
 server.listen(3000)
