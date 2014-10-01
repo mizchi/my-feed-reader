@@ -6,6 +6,12 @@ Livedoor reader like rss reader.
 
 Download export.xml(opml) from your livedoor reader.
 
+## Features
+
+- No database!(use localhost)
+- Expect to run in localhost
+- Check only google chrome
+
 ## Keybind
 
 ```
