@@ -50,18 +50,22 @@ wait = (ms) -> new Promise (done) ->
 
 {EventEmitter} = require 'events'
 
+addTimestamp = (entries) ->
+  for e in entries
+    e.pubdate = e.pubdate ? e.pubDate ? e.date ? new Date().toString()
+
 module.exports =
 class Crawler extends EventEmitter
   constructor: ->
     @contents =
       feedList: [] # {feedTitle, }[]
 
-  appendFeed: ({feedTitle, entries}) ->
+  appendFeed: ({feedTitle, entries, feedUrl}) ->
     index = _.findIndex @contents.feedList, (feed) => feed.feedTitle is feedTitle
     if index > -1
       @contents.feedList[index].entries = entries
     else
-      @contents.feedList.push {feedTitle, entries}
+      @contents.feedList.push {feedTitle, entries, feedUrl}
 
   start: ->
     do co =>
@@ -70,13 +74,13 @@ class Crawler extends EventEmitter
         data = yield loadData()
         for feed in getFeedList data
           console.log 'fetching:', feed.title
-          entries = yield crawl feed.xmlUrl
+          feedUrl = feed.xmlUrl
+          entries = yield crawl feedUrl
+          addTimestamp entries # some feed doesn't have date
+
           feedTitle = feed.title
-
-          console.log '---f-f-f-f-f-', feedTitle, entries.length
-
-          @appendFeed {feedTitle, entries}
-          @emit 'update-feed', {feedTitle, entries}
+          @appendFeed {feedTitle, entries, feedUrl}
+          @emit 'update-feed', {feedTitle, entries, feedUrl}
 
         console.log '[fetch end]'
         console.log @contents

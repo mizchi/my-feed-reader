@@ -20,12 +20,14 @@
     "koa-route": "^2.1.0",
     "koa-router": "^3.4.0",
     "koa-static": "^1.4.7",
+    "moment": "^2.8.3",
     "opmlparser": "^0.7.0",
     "request": "^2.44.0",
     "socket.io": "^1.1.0",
     "xml2js": "^0.4.4"
   },
   "devDependencies": {
+    "jquery": "^2.1.1",
     "lodash": "^2.4.1",
     "react": "^0.11.2",
     "react-kup": "^0.3.0"
