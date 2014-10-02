@@ -70,11 +70,6 @@
 
 	App = __webpack_require__(3);
 
-	startApp = function() {
-	  initializeStore();
-	  return window.app = React.renderComponent(App({}), document.body);
-	};
-
 	initializeStore = function() {
 	  return window.store = {
 	    showHelp: true,
@@ -87,6 +82,11 @@
 	  };
 	};
 
+	startApp = function() {
+	  initializeStore();
+	  return window.app = React.renderComponent(App({}), document.body);
+	};
+
 	keymap = {
 	  a: 65,
 	  s: 83,
@@ -97,10 +97,12 @@
 	  u: 85,
 	  r: 82,
 	  w: 87,
-	  h: 72
+	  h: 72,
+	  l: 76
 	};
 
 	window.addEventListener('keydown', function(ev) {
+	  console.log(ev.keyCode);
 	  switch (parseInt(ev.keyCode)) {
 	    case keymap.s:
 	      return Actions.selectNextFeed();
@@ -118,6 +120,8 @@
 	      return Actions.requestCrawl();
 	    case keymap.h:
 	      return Actions.toggleHelp();
+	    case keymap.l:
+	      return Actions.refresh();
 	  }
 	});
 
@@ -214,43 +218,56 @@
 	      });
 	    }
 	  }
-	  return store.unreadFeedList = unreadFeedList;
+	  return app.update({
+	    unreadFeedList: {
+	      $set: unreadFeedList
+	    }
+	  });
 	};
 
 	module.exports = Actions = {
 	  initData: function(data) {
-	    store.feedList = data.feedList;
-	    buildUnreadEntries();
-	    return app.update();
+	    app.update({
+	      feedList: {
+	        $set: data.feedList
+	      }
+	    });
+	    return buildUnreadEntries();
 	  },
 	  updateTitle: function(_arg) {
-	    var buf, entries, feedTitle, feedUrl, index;
+	    var entries, feedTitle, feedUrl, index, query;
 	    feedTitle = _arg.feedTitle, entries = _arg.entries, feedUrl = _arg.feedUrl;
 	    index = _.findIndex(store.feedList, (function(_this) {
 	      return function(feed) {
 	        return feed.feedTitle === feedTitle;
 	      };
 	    })(this));
+	    query = null;
 	    if (index > -1) {
 	      store.feedList[index].entries = entries;
+	      query = {
+	        feedList: {}
+	      };
+	      query.feedList[index] = {
+	        entries: {
+	          $set: entries
+	        }
+	      };
 	    } else {
-	      store.feedList.push({
-	        feedTitle: feedTitle,
-	        entries: entries,
-	        feedUrl: feedUrl
-	      });
+	      query = {
+	        feedList: {
+	          $push: [
+	            {
+	              feedTitle: feedTitle,
+	              entries: entries,
+	              feedUrl: feedUrl
+	            }
+	          ]
+	        }
+	      };
 	    }
-	    buf = store.feedList;
-	    store.feedList = [];
-	    if (typeof app.update === "function") {
-	      app.update();
-	    }
-	    store.feedList = buf;
-	    buildUnreadEntries();
-	    if (typeof app.update === "function") {
-	      app.update();
-	    }
-	    return typeof app !== "undefined" && app !== null ? app.forceUpdate() : void 0;
+	    app.update(query);
+	    return buildUnreadEntries();
 	  },
 	  selectNextFeed: function() {
 	    var feed, feedList, maxTimestamp, timestamps;
@@ -266,37 +283,58 @@
 	    }
 	    if (feedList.length > store.feedCursor + 1) {
 	      console.log('selectNextFeed');
-	      store.feedCursor++;
-	      store.entryCursor = 0;
-	      return typeof app.update === "function" ? app.update() : void 0;
+	      return app.update({
+	        feedCursor: {
+	          $set: store.feedCursor + 1
+	        },
+	        entryCursor: {
+	          $set: 0
+	        }
+	      });
 	    } else {
-	      store.feedCursor = 0;
-	      store.entryCursor = 0;
-	      return typeof app.update === "function" ? app.update() : void 0;
+	      return app.update({
+	        feedCursor: {
+	          $set: 0
+	        },
+	        entryCursor: {
+	          $set: 0
+	        }
+	      });
 	    }
 	  },
 	  selectPrevFeed: function() {
 	    if (store.feedCursor > 0) {
 	      console.log('selectPrevFeed');
-	      store.feedCursor--;
-	      store.entryCursor = 0;
-	      return typeof app.update === "function" ? app.update() : void 0;
+	      return app.update({
+	        feedCursor: {
+	          $set: store.feedCursor - 1
+	        },
+	        entryCursor: {
+	          $set: 0
+	        }
+	      });
 	    }
 	  },
 	  selectNextEntry: function() {
 	    var feed;
 	    feed = (store.unread ? store.unreadFeedList : store.feedList)[store.feedCursor];
-	    if (store.entryCursor < feed.entries.length - 1) {
+	    if ((feed != null) && store.entryCursor < (feed != null ? feed.entries.length : void 0) - 1) {
 	      console.log('selectNextEntry');
-	      store.entryCursor++;
-	      return typeof app.update === "function" ? app.update() : void 0;
+	      return app.update({
+	        entryCursor: {
+	          $set: store.entryCursor + 1
+	        }
+	      });
 	    }
 	  },
 	  selectPrevEntry: function() {
 	    if (store.entryCursor > 0) {
 	      console.log('selectPrevEntry');
-	      store.entryCursor--;
-	      return typeof app.update === "function" ? app.update() : void 0;
+	      return app.update({
+	        entryCursor: {
+	          $set: store.entryCursor - 1
+	        }
+	      });
 	    }
 	  },
 	  openSelectedEntry: function() {
@@ -313,21 +351,32 @@
 	    }
 	  },
 	  toggleUnread: function() {
-	    store.unread = !store.unread;
 	    buildUnreadEntries();
-	    store.feedCursor = 0;
-	    store.entryCursor = 0;
-	    if (typeof app.update === "function") {
-	      app.update();
-	    }
+	    app.update({
+	      unread: {
+	        $set: !store.unread
+	      },
+	      feedCursor: {
+	        $set: 0
+	      },
+	      entryCursor: {
+	        $set: 0
+	      }
+	    });
 	    return console.log('toggle unread flag to:', store.unread);
 	  },
 	  requestCrawl: function() {
 	    return socket.emit('request-crawl');
 	  },
 	  toggleHelp: function() {
-	    store.showHelp = !store.showHelp;
-	    return typeof app.update === "function" ? app.update() : void 0;
+	    return app.update({
+	      showHelp: {
+	        $set: !store.showHelp
+	      }
+	    });
+	  },
+	  refresh: function() {
+	    return app.forceUpdate();
 	  }
 	};
 
@@ -569,7 +618,10 @@
 	  getInitialState: function() {
 	    return store;
 	  },
-	  update: function() {
+	  update: function(query) {
+	    if (query) {
+	      window.store = React.addons.update(store, query);
+	    }
 	    return this.setState(store);
 	  },
 	  render: function() {
@@ -27602,8 +27654,8 @@
 
 	"use strict";
 
-	var ReactLink = __webpack_require__(123);
-	var ReactStateSetters = __webpack_require__(124);
+	var ReactLink = __webpack_require__(124);
+	var ReactStateSetters = __webpack_require__(125);
 
 	/**
 	 * A simple mixin around ReactLink.forState().
@@ -27653,7 +27705,7 @@
 
 	"use strict";
 
-	var shallowEqual = __webpack_require__(125);
+	var shallowEqual = __webpack_require__(123);
 
 	/**
 	 * If your React component's render function is "pure", e.g. it will render the
@@ -34953,6 +35005,61 @@
 	 * See the License for the specific language governing permissions and
 	 * limitations under the License.
 	 *
+	 * @providesModule shallowEqual
+	 */
+
+	"use strict";
+
+	/**
+	 * Performs equality by iterating through keys on an object and returning
+	 * false when any key has values which are not strictly equal between
+	 * objA and objB. Returns true when the values of all keys are strictly equal.
+	 *
+	 * @return {boolean}
+	 */
+	function shallowEqual(objA, objB) {
+	  if (objA === objB) {
+	    return true;
+	  }
+	  var key;
+	  // Test for A's keys different from B.
+	  for (key in objA) {
+	    if (objA.hasOwnProperty(key) &&
+	        (!objB.hasOwnProperty(key) || objA[key] !== objB[key])) {
+	      return false;
+	    }
+	  }
+	  // Test for B'a keys missing from A.
+	  for (key in objB) {
+	    if (objB.hasOwnProperty(key) && !objA.hasOwnProperty(key)) {
+	      return false;
+	    }
+	  }
+	  return true;
+	}
+
+	module.exports = shallowEqual;
+
+
+/***/ },
+/* 124 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014 Facebook, Inc.
+	 *
+	 * Licensed under the Apache License, Version 2.0 (the "License");
+	 * you may not use this file except in compliance with the License.
+	 * You may obtain a copy of the License at
+	 *
+	 * http://www.apache.org/licenses/LICENSE-2.0
+	 *
+	 * Unless required by applicable law or agreed to in writing, software
+	 * distributed under the License is distributed on an "AS IS" BASIS,
+	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	 * See the License for the specific language governing permissions and
+	 * limitations under the License.
+	 *
 	 * @providesModule ReactLink
 	 * @typechecks static-only
 	 */
@@ -35019,7 +35126,7 @@
 
 
 /***/ },
-/* 124 */
+/* 125 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -35133,61 +35240,6 @@
 	};
 
 	module.exports = ReactStateSetters;
-
-
-/***/ },
-/* 125 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule shallowEqual
-	 */
-
-	"use strict";
-
-	/**
-	 * Performs equality by iterating through keys on an object and returning
-	 * false when any key has values which are not strictly equal between
-	 * objA and objB. Returns true when the values of all keys are strictly equal.
-	 *
-	 * @return {boolean}
-	 */
-	function shallowEqual(objA, objB) {
-	  if (objA === objB) {
-	    return true;
-	  }
-	  var key;
-	  // Test for A's keys different from B.
-	  for (key in objA) {
-	    if (objA.hasOwnProperty(key) &&
-	        (!objB.hasOwnProperty(key) || objA[key] !== objB[key])) {
-	      return false;
-	    }
-	  }
-	  // Test for B'a keys missing from A.
-	  for (key in objB) {
-	    if (objB.hasOwnProperty(key) && !objA.hasOwnProperty(key)) {
-	      return false;
-	    }
-	  }
-	  return true;
-	}
-
-	module.exports = shallowEqual;
 
 
 /***/ },
@@ -42048,7 +42100,7 @@
 	var getActiveElement = __webpack_require__(225);
 	var isTextInputElement = __webpack_require__(212);
 	var keyOf = __webpack_require__(131);
-	var shallowEqual = __webpack_require__(125);
+	var shallowEqual = __webpack_require__(123);
 
 	var topLevelTypes = EventConstants.topLevelTypes;
 

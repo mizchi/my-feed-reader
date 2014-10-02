@@ -16,10 +16,6 @@ window.Actions = require './actions'
 
 App = require './components/app'
 
-startApp = ->
-  initializeStore()
-  window.app = React.renderComponent (App {}), document.body
-
 initializeStore = ->
   window.store =
     showHelp: true
@@ -29,6 +25,10 @@ initializeStore = ->
     feedCursor: 0
     entryCursor: 0
     unread: true
+
+startApp = ->
+  initializeStore()
+  window.app = React.renderComponent (App {}), document.body
 
 keymap =
   a: 65
@@ -41,8 +41,10 @@ keymap =
   r: 82
   w: 87
   h: 72
+  l: 76
 
 window.addEventListener 'keydown', (ev) ->
+  console.log ev.keyCode
   switch parseInt ev.keyCode
     when keymap.s then Actions.selectNextFeed()
     when keymap.a then Actions.selectPrevFeed()
@@ -52,6 +54,7 @@ window.addEventListener 'keydown', (ev) ->
     when keymap.u then Actions.toggleUnread()
     when keymap.r then Actions.requestCrawl()
     when keymap.h then Actions.toggleHelp()
+    when keymap.l then Actions.refresh()
 
 socket.on 'init', (data) ->
   console.log('init with', data)

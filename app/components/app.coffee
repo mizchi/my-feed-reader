@@ -135,7 +135,10 @@ FeedList = React.createClass
 module.exports = App = React.createClass
   getInitialState: -> store
 
-  update: ->
+  update: (query) ->
+    if query
+      window.store = React.addons.update store, query
+
     @setState store
 
   render: ->

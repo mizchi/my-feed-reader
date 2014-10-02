@@ -14,7 +14,10 @@ crawler.start()
 
 io.on 'connection', (socket) ->
   console.log 'initialize', socket.id
-  socket.emit 'init', crawler.contents
+
+  socket.emit 'init', {feedList: []}
+  for feed in crawler.contents
+    io.sockets.emit 'update-feed', {feedTitle, entries, feedUrl}
 
   running = false
   socket.on 'request-crawl', ->

@@ -15,13 +15,9 @@
       <outline title="hitode909の日記" htmlUrl="http://hitode909.hatenablog.com/" type="rss" xmlUrl="http://hitode909.hatenablog.com/feed" />
       <outline title="✘╹◡╹✘" htmlUrl="http://r7kamura.hatenablog.com/" type="rss" xmlUrl="http://r7kamura.hatenablog.com/feed" />
       <outline title="本の虫" htmlUrl="http://cpplover.blogspot.com/" type="rss" xmlUrl="http://cpplover.blogspot.com/feeds/posts/default" />
-      <outline title="すらるど" htmlUrl="http://sow.blog.jp/" type="rss" xmlUrl="http://sow.blog.jp/atom.xml" />
       <outline title="タグ「javascript」を検索 - はてなブックマーク" htmlUrl="http://b.hatena.ne.jp/search/tag?safe=on&amp;sort=recent&amp;q=javascript&amp;users=3" type="rss" xmlUrl="http://b.hatena.ne.jp/search/tag?safe=on&amp;q=javascript&amp;mode=rss" />
       <outline title="JavaScript" htmlUrl="http://www.reddit.com/r/javascript/" type="rss" xmlUrl="http://reddit.com/r/javascript/.rss" />
       <outline title="What's new in gaming" htmlUrl="http://www.reddit.com/r/gaming/" type="rss" xmlUrl="http://reddit.com/r/gaming/.rss" />
-      <outline title="アルファルファモザイク" htmlUrl="http://alfalfalfa.com/" type="rss" xmlUrl="http://alfalfalfa.com/index.rdf" />
-      <outline title="やらおん!" htmlUrl="http://yaraon.blog109.fc2.com/" type="rss" xmlUrl="http://yaraon.blog109.fc2.com/?xml" />
-      <outline title="哲学ニュースnwk" htmlUrl="http://blog.livedoor.jp/nwknews/" type="rss" xmlUrl="http://blog.livedoor.jp/nwknews/atom.xml" />
       <outline title="TechCrunch Japan » TechCrunch" htmlUrl="http://jp.techcrunch.com" type="rss" xmlUrl="http://feed.rssad.jp/rss/techcrunch/feed" />
       <outline title="タグ「vim」を検索 - はてなブックマーク" htmlUrl="http://b.hatena.ne.jp/search/tag?safe=on&amp;sort=recent&amp;q=vim&amp;users=3" type="rss" xmlUrl="http://b.hatena.ne.jp/search/tag?q=vim&amp;mode=rss" />
       <outline title="Publickey" htmlUrl="http://www.publickey1.jp/" type="rss" xmlUrl="http://www.publickey1.jp/atom.xml" />
@@ -30,7 +26,6 @@
       <outline title="タグ「coffeescript」を検索 - はてなブックマーク" htmlUrl="http://b.hatena.ne.jp/search/tag?safe=on&amp;sort=recent&amp;q=coffeescript&amp;users=3" type="rss" xmlUrl="http://b.hatena.ne.jp/search/tag?q=coffeescript&amp;mode=rss" />
       <outline title="タグ「python」を検索 - はてなブックマーク" htmlUrl="http://b.hatena.ne.jp/search/tag?safe=on&amp;sort=recent&amp;q=python&amp;users=3" type="rss" xmlUrl="http://b.hatena.ne.jp/search/tag?q=python&amp;mode=rss" />
       <outline title="Hacker News" htmlUrl="https://news.ycombinator.com/" type="rss" xmlUrl="https://news.ycombinator.com/rss" />
-      <outline title="オレ的ゲーム速報＠刃" htmlUrl="http://jin115.com/" type="rss" xmlUrl="http://jin115.com/index.rdf" />
       <outline title="PS3 FAN" htmlUrl="http://www.ps3-fan.net/" type="rss" xmlUrl="http://www.ps3-fan.net/atom.xml" />
       <outline title="N-Styles" htmlUrl="http://n-styles.com/" type="rss" xmlUrl="http://n-styles.com/atom.xml" />
       <outline title="タグ「game」を検索 - はてなブックマーク" htmlUrl="http://b.hatena.ne.jp/search/tag?safe=on&amp;sort=recent&amp;q=game&amp;users=5" type="rss" xmlUrl="http://b.hatena.ne.jp/search/tag?q=game&amp;users=5&amp;mode=rss" />
@@ -38,5 +33,12 @@
       <outline title="コタク・ジャパン" htmlUrl="http://www.kotaku.jp/" type="rss" xmlUrl="http://feeds.kotaku.jp/rss/kotaku/index.xml" />
       <outline title="任天堂ホームページ更新情報" htmlUrl="http://www.nintendo.co.jp/" type="rss" xmlUrl="http://www.nintendo.co.jp/n00/whatsnew.xml" />
       <outline title="ねとらぼ 最新記事一覧" htmlUrl="http://nlab.itmedia.co.jp/" type="rss" xmlUrl="http://rss.rssad.jp/rss/itm/1.0/netlab.xml" />
+
+      <!-- <outline title="すらるど" htmlUrl="http://sow.blog.jp/" type="rss" xmlUrl="http://sow.blog.jp/atom.xml" />
+      <outline title="アルファルファモザイク" htmlUrl="http://alfalfalfa.com/" type="rss" xmlUrl="http://alfalfalfa.com/index.rdf" />
+      <outline title="やらおん!" htmlUrl="http://yaraon.blog109.fc2.com/" type="rss" xmlUrl="http://yaraon.blog109.fc2.com/?xml" />
+      <outline title="オレ的ゲーム速報＠刃" htmlUrl="http://jin115.com/" type="rss" xmlUrl="http://jin115.com/index.rdf" />
+      <outline title="哲学ニュースnwk" htmlUrl="http://blog.livedoor.jp/nwknews/" type="rss" xmlUrl="http://blog.livedoor.jp/nwknews/atom.xml" /> -->
+      
 </outline>
 </body></opml>
