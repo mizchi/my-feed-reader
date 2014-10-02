@@ -11,13 +11,14 @@ g._ = require 'lodash'
 window.ua = getBrowser()
 window.store = null
 window.app = null
-window.socket = io.connect()
+window.socket = null
 window.Actions = require './actions'
 
 App = require './components/app'
 
 initializeStore = ->
   window.store =
+    feedCount: 1
     showHelp: true
     name: 'reader'
     feedList: []
@@ -25,10 +26,6 @@ initializeStore = ->
     feedCursor: 0
     entryCursor: 0
     unread: true
-
-startApp = ->
-  initializeStore()
-  window.app = React.renderComponent (App {}), document.body
 
 keymap =
   a: 65
@@ -43,27 +40,32 @@ keymap =
   h: 72
   l: 76
 
-window.addEventListener 'keydown', (ev) ->
-  console.log ev.keyCode
-  switch parseInt ev.keyCode
-    when keymap.s then Actions.selectNextFeed()
-    when keymap.a then Actions.selectPrevFeed()
-    when keymap.j then Actions.selectNextEntry()
-    when keymap.k then Actions.selectPrevEntry()
-    when keymap.o then Actions.openSelectedEntry()
-    when keymap.u then Actions.toggleUnread()
-    when keymap.r then Actions.requestCrawl()
-    when keymap.h then Actions.toggleHelp()
-    when keymap.l then Actions.refresh()
-
-socket.on 'init', (data) ->
-  console.log('init with', data)
-  Actions.initData data
-  Actions.toggleHelp()
-
-socket.on 'update-feed', ({feedTitle, entries, feedUrl}) ->
-  console.log('update-feed', feedTitle)
-  Actions.updateTitle {feedTitle, entries, feedUrl}
+setupKeyEvents = ->
+  window.document.body.addEventListener 'keydown', (ev) ->
+    switch parseInt ev.keyCode
+      when keymap.s then Actions.selectNextFeed()
+      when keymap.a then Actions.selectPrevFeed()
+      when keymap.j then Actions.selectNextEntry()
+      when keymap.k then Actions.selectPrevEntry()
+      when keymap.o then Actions.openSelectedEntry()
+      when keymap.u then Actions.toggleUnread()
+      when keymap.r then Actions.requestCrawl()
+      when keymap.h then Actions.toggleHelp()
+      when keymap.l then Actions.refresh()
 
 window.addEventListener 'load', ->
-  startApp()
+  initializeStore()
+  setupKeyEvents()
+
+  window.socket = io.connect()
+
+  socket.on 'init', (data) ->
+    console.log('init with', data)
+    Actions.init data
+    Actions.toggleHelp()
+
+  socket.on 'update-feed', ({feedTitle, entries, feedUrl}) ->
+    console.log('update-feed', feedTitle)
+    Actions.updateTitle {feedTitle, entries, feedUrl}
+
+  window.app = React.renderComponent (App {}), document.body

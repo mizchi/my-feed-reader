@@ -1,55 +1,6 @@
 Kup = require('react-kup')(React)
 
-Help = React.createClass
-  render: ->
-    Kup ($) =>
-      $.div ->
-        $.h3 'keybind:'
-        $.hr()
-        $.dl className: 'help', ->
-          $.dt 'h'
-          $.dd  'toggle help'
-
-          $.dt 's'
-          $.dd  'next feed'
-
-          $.dt 'a'
-          $.dd  'previous feed'
-
-          $.dt 'j'
-          $.dd  'next entry'
-
-          $.dt 'k'
-          $.dd  'previous entry'
-
-          $.dt 'r'
-          $.dd  'request crawling to server'
-
-          $.dt 'u'
-          $.dd  'toggle read/unread to show'
-
-        $.hr()
-
-Header = React.createClass
-  onClickRefresh: ->
-    localStorage.clear()
-    location.reload()
-
-  onClickHelp: ->
-    Actions.toggleHelp()
-
-  render: ->
-    {name, unread, showHelp} = @props
-    Kup ($) =>
-      $.div =>
-        $.span "Reader: #{name}:" + (if unread then 'unread' else '')
-        $.span '|'
-        $.button onClick: @onClickHelp, 'help'
-        $.span '|'
-        $.button onClick: @onClickRefresh, 'refresh'
-
-        if showHelp
-          $.component Help, {}
+Header = require './header'
 
 Entry = React.createClass
   render: ->
@@ -60,7 +11,6 @@ Entry = React.createClass
         # $.span dangerouslySetInnerHTML:{__html: summary}
         # $.span summary
 
-window.jQuery = require 'jquery'
 EntryList = React.createClass
   render: ->
     {entries, entryCursor, feedTitle} = @props
@@ -142,9 +92,12 @@ module.exports = App = React.createClass
     @setState store
 
   render: ->
-    {name, feedList, feedCursor, entryCursor, unread, showHelp} = @state
+    {name, feedList, feedCursor, entryCursor, unread, showHelp, feedCount} = @state
+    loadedFeedCount = feedList.length
+
     if unread
       feedList = @state.unreadFeedList
+
 
     Kup ($) ->
       $.div style: {
@@ -154,7 +107,7 @@ module.exports = App = React.createClass
         padding: 0
         overflow: 'hidden'
       }, ->
-        $.component Header, {name, unread, showHelp}
+        $.component Header, {name, unread, showHelp, feedCount, loadedFeedCount}
         if feedList.length > 0
           $.component FeedList, {feedList, feedCursor, entryCursor}
         else

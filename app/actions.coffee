@@ -24,10 +24,12 @@ buildUnreadEntries = ->
       $set: unreadFeedList
 
 module.exports = Actions =
-  initData: (data) ->
+  init: ({feedList, feedCount}) ->
     app.update
       feedList:
-        $set: data.feedList
+        $set: feedList
+      feedCount:
+        $set: feedCount
     buildUnreadEntries()
 
   updateTitle: ({feedTitle, entries, feedUrl}) ->
@@ -96,14 +98,18 @@ module.exports = Actions =
   openSelectedEntry: ->
     feedList = (if store.unread then store.unreadFeedList else store.feedList)
     entry = feedList[store.feedCursor]?.entries[store.entryCursor]
+    console.log 'open', entry.link
 
+    a = document.createElement 'a'
+    a.href = entry.link
+    a.target = '_blank'
+
+    clickEvent = document.createEvent('MouseEvents')
     if ua is 'chrome'
-      clickEvent = document.createEvent('MouseEvents')
       clickEvent.initMouseEvent('click', true, true, window, 0, 0, 0, 0, false, false, false, false, 1, null)
-      console.log 'open', entry.link
-      jQuery('<a>').attr('href', entry.link)[0].dispatchEvent(clickEvent)
     else
-      window.open entry.link
+      clickEvent.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+    a.dispatchEvent(clickEvent)
 
   toggleUnread: ->
     buildUnreadEntries()

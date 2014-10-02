@@ -12,12 +12,20 @@ Crawler = require './crawler'
 crawler = new Crawler
 crawler.start()
 
-io.on 'connection', (socket) ->
-  console.log 'initialize', socket.id
+co = require 'co'
 
-  socket.emit 'init', {feedList: []}
-  for feed in crawler.contents
-    io.sockets.emit 'update-feed', {feedTitle, entries, feedUrl}
+wait = (ms) -> new Promise (done) ->
+  setTimeout done, ms
+
+io.on 'connection', (socket) ->
+  console.log 'connect', socket.id, crawler.contents.feedList.length
+  socket.emit 'init', {feedList: [], feedCount: crawler.contents.feedList.length}
+
+  do co ->
+    for feed in crawler.contents.feedList
+      console.log 'update-feed', socket.id, feed.feedTitle
+      io.sockets.emit 'update-feed', feed
+      yield wait(150)
 
   running = false
   socket.on 'request-crawl', ->
