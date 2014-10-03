@@ -6,17 +6,15 @@ buildUnreadEntries = ->
   unreadFeedList = []
 
   for {feedTitle, entries, feedUrl} in store.feedList
-    throw 'no feed url' unless feedUrl
-
     lastPubdate = parseInt localStorage.getItem 'reading-done:'+feedUrl
     entries =
       if lastPubdate
         entries.filter (e) ->
-          d = e.pubdate ? e.pubDate ? e.date
-          moment(d).unix() > lastPubdate
+          e.unixtime > lastPubdate
       else
         entries
     if entries.length > 0
+      # console.log 'load', feedUrl
       unreadFeedList.push {feedTitle, entries, feedUrl}
 
   app.update
@@ -52,12 +50,12 @@ module.exports = Actions =
     # touch storage when unread mode
     if store.unread
       feed = store.unreadFeedList[store.feedCursor]
-      timestamps = feed.entries.map (f) -> moment(f.pubdate ? f.pubDate ? f.date).unix()
+      timestamps = feed.entries.map (f) -> f.unixtime
       maxTimestamp = Math.max timestamps...
-      localStorage.setItem 'reading-done:'+feed.feedUrl, maxTimestamp ? moment().unix()
+      localStorage.setItem 'reading-done:'+feed.feedUrl, maxTimestamp
 
     if feedList.length > store.feedCursor + 1
-      console.log 'selectNextFeed'
+      # console.log 'selectNextFeed'
       app.update
         feedCursor:
           $set: store.feedCursor + 1
@@ -72,7 +70,7 @@ module.exports = Actions =
 
   selectPrevFeed: ->
     if store.feedCursor > 0
-      console.log 'selectPrevFeed'
+      # console.log 'selectPrevFeed'
       app.update
         feedCursor:
           $set: store.feedCursor - 1
@@ -83,14 +81,14 @@ module.exports = Actions =
     feed = (if store.unread then store.unreadFeedList else store.feedList)[store.feedCursor]
 
     if feed? and store.entryCursor < feed?.entries.length - 1
-      console.log 'selectNextEntry'
+      # console.log 'selectNextEntry'
       app.update
         entryCursor:
           $set: store.entryCursor + 1
 
   selectPrevEntry: ->
     if store.entryCursor > 0
-      console.log 'selectPrevEntry'
+      # console.log 'selectPrevEntry'
       app.update
         entryCursor:
           $set: store.entryCursor - 1
@@ -98,7 +96,7 @@ module.exports = Actions =
   openSelectedEntry: ->
     feedList = (if store.unread then store.unreadFeedList else store.feedList)
     entry = feedList[store.feedCursor]?.entries[store.entryCursor]
-    console.log 'open', entry.link
+    # console.log 'open', entry.link
 
     a = document.createElement 'a'
     a.href = entry.link
@@ -122,7 +120,7 @@ module.exports = Actions =
       entryCursor:
         $set: 0
 
-    console.log 'toggle unread flag to:', store.unread
+    # console.log 'toggle unread flag to:', store.unread
 
   requestCrawl: ->
     socket.emit 'request-crawl'

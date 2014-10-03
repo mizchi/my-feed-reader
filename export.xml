@@ -33,12 +33,11 @@
       <outline title="コタク・ジャパン" htmlUrl="http://www.kotaku.jp/" type="rss" xmlUrl="http://feeds.kotaku.jp/rss/kotaku/index.xml" />
       <outline title="任天堂ホームページ更新情報" htmlUrl="http://www.nintendo.co.jp/" type="rss" xmlUrl="http://www.nintendo.co.jp/n00/whatsnew.xml" />
       <outline title="ねとらぼ 最新記事一覧" htmlUrl="http://nlab.itmedia.co.jp/" type="rss" xmlUrl="http://rss.rssad.jp/rss/itm/1.0/netlab.xml" />
-
-      <!-- <outline title="すらるど" htmlUrl="http://sow.blog.jp/" type="rss" xmlUrl="http://sow.blog.jp/atom.xml" />
+      <outline title="すらるど" htmlUrl="http://sow.blog.jp/" type="rss" xmlUrl="http://sow.blog.jp/atom.xml" />
       <outline title="アルファルファモザイク" htmlUrl="http://alfalfalfa.com/" type="rss" xmlUrl="http://alfalfalfa.com/index.rdf" />
       <outline title="やらおん!" htmlUrl="http://yaraon.blog109.fc2.com/" type="rss" xmlUrl="http://yaraon.blog109.fc2.com/?xml" />
       <outline title="オレ的ゲーム速報＠刃" htmlUrl="http://jin115.com/" type="rss" xmlUrl="http://jin115.com/index.rdf" />
-      <outline title="哲学ニュースnwk" htmlUrl="http://blog.livedoor.jp/nwknews/" type="rss" xmlUrl="http://blog.livedoor.jp/nwknews/atom.xml" /> -->
-      
+      <outline title="哲学ニュースnwk" htmlUrl="http://blog.livedoor.jp/nwknews/" type="rss" xmlUrl="http://blog.livedoor.jp/nwknews/atom.xml" />
+
 </outline>
 </body></opml>

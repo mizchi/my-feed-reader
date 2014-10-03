@@ -50,15 +50,18 @@ wait = (ms) -> new Promise (done) ->
 
 {EventEmitter} = require 'events'
 
+
+moment = require 'moment'
 addTimestamp = (entries) ->
   for e in entries
-    e.pubdate = e.pubdate ? e.pubDate ? e.date ? new Date().toString()
+    date = e.pubdate ? e.pubDate ? e.date
+    e.unixtime = if date then moment(date).unix() else moment().unix()
 
 module.exports =
 class Crawler extends EventEmitter
   constructor: ->
     @contents =
-      feedList: [] # {feedTitle, }[]
+      feedList: []
 
   appendFeed: ({feedTitle, entries, feedUrl}) ->
     index = _.findIndex @contents.feedList, (feed) => feed.feedTitle is feedTitle
@@ -74,11 +77,28 @@ class Crawler extends EventEmitter
         console.log 'fetching:', feed.title
         feedUrl = feed.xmlUrl
         entries = yield crawl feedUrl
-        addTimestamp entries # some feed doesn't have date
 
-        feedTitle = feed.title
-        @appendFeed {feedTitle, entries, feedUrl}
-        @emit 'update-feed', {feedTitle, entries, feedUrl}
+        # diff
+        oldFeed = _.find @contents.feedList, {feedUrl}
+        if oldFeed?
+          newEntries = []
+          for newEntry in entries
+            oldEntry = _.find oldFeed.entries, (oe) -> oe.link is newEntry.link
+            unless oldEntry
+              newEntries.push newEntry
+
+          addTimestamp newEntries # some feed doesn't have date
+          oldFeed.entries = oldFeed.entries.concat newEntries
+          if newEntries.length > 0
+            @emit 'update-feed', oldFeed
+          else
+            console.log 'not hit on', feed.title
+
+        else
+          addTimestamp entries # some feed doesn't have date
+          feedTitle = feed.title
+          @appendFeed {feedTitle, entries, feedUrl}
+          @emit 'update-feed', {feedTitle, entries, feedUrl}
       done()
 
   start: ->

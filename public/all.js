@@ -122,14 +122,12 @@
 	  setupKeyEvents();
 	  window.socket = io.connect();
 	  socket.on('init', function(data) {
-	    console.log('init with', data);
 	    Actions.init(data);
 	    return Actions.toggleHelp();
 	  });
 	  socket.on('update-feed', function(_arg) {
 	    var entries, feedTitle, feedUrl;
 	    feedTitle = _arg.feedTitle, entries = _arg.entries, feedUrl = _arg.feedUrl;
-	    console.log('update-feed', feedTitle);
 	    return Actions.updateTitle({
 	      feedTitle: feedTitle,
 	      entries: entries,
@@ -194,14 +192,9 @@
 	  _ref = store.feedList;
 	  for (_i = 0, _len = _ref.length; _i < _len; _i++) {
 	    _ref1 = _ref[_i], feedTitle = _ref1.feedTitle, entries = _ref1.entries, feedUrl = _ref1.feedUrl;
-	    if (!feedUrl) {
-	      throw 'no feed url';
-	    }
 	    lastPubdate = parseInt(localStorage.getItem('reading-done:' + feedUrl));
 	    entries = lastPubdate ? entries.filter(function(e) {
-	      var d, _ref2, _ref3;
-	      d = (_ref2 = (_ref3 = e.pubdate) != null ? _ref3 : e.pubDate) != null ? _ref2 : e.date;
-	      return moment(d).unix() > lastPubdate;
+	      return e.unixtime > lastPubdate;
 	    }) : entries;
 	    if (entries.length > 0) {
 	      unreadFeedList.push({
@@ -273,14 +266,12 @@
 	    if (store.unread) {
 	      feed = store.unreadFeedList[store.feedCursor];
 	      timestamps = feed.entries.map(function(f) {
-	        var _ref, _ref1;
-	        return moment((_ref = (_ref1 = f.pubdate) != null ? _ref1 : f.pubDate) != null ? _ref : f.date).unix();
+	        return f.unixtime;
 	      });
 	      maxTimestamp = Math.max.apply(Math, timestamps);
-	      localStorage.setItem('reading-done:' + feed.feedUrl, maxTimestamp != null ? maxTimestamp : moment().unix());
+	      localStorage.setItem('reading-done:' + feed.feedUrl, maxTimestamp);
 	    }
 	    if (feedList.length > store.feedCursor + 1) {
-	      console.log('selectNextFeed');
 	      return app.update({
 	        feedCursor: {
 	          $set: store.feedCursor + 1
@@ -302,7 +293,6 @@
 	  },
 	  selectPrevFeed: function() {
 	    if (store.feedCursor > 0) {
-	      console.log('selectPrevFeed');
 	      return app.update({
 	        feedCursor: {
 	          $set: store.feedCursor - 1
@@ -317,7 +307,6 @@
 	    var feed;
 	    feed = (store.unread ? store.unreadFeedList : store.feedList)[store.feedCursor];
 	    if ((feed != null) && store.entryCursor < (feed != null ? feed.entries.length : void 0) - 1) {
-	      console.log('selectNextEntry');
 	      return app.update({
 	        entryCursor: {
 	          $set: store.entryCursor + 1
@@ -327,7 +316,6 @@
 	  },
 	  selectPrevEntry: function() {
 	    if (store.entryCursor > 0) {
-	      console.log('selectPrevEntry');
 	      return app.update({
 	        entryCursor: {
 	          $set: store.entryCursor - 1
@@ -339,7 +327,6 @@
 	    var a, clickEvent, entry, feedList, _ref;
 	    feedList = (store.unread ? store.unreadFeedList : store.feedList);
 	    entry = (_ref = feedList[store.feedCursor]) != null ? _ref.entries[store.entryCursor] : void 0;
-	    console.log('open', entry.link);
 	    a = document.createElement('a');
 	    a.href = entry.link;
 	    a.target = '_blank';
@@ -353,7 +340,7 @@
 	  },
 	  toggleUnread: function() {
 	    buildUnreadEntries();
-	    app.update({
+	    return app.update({
 	      unread: {
 	        $set: !store.unread
 	      },
@@ -364,7 +351,6 @@
 	        $set: 0
 	      }
 	    });
-	    return console.log('toggle unread flag to:', store.unread);
 	  },
 	  requestCrawl: function() {
 	    return socket.emit('request-crawl');
@@ -425,7 +411,6 @@
 	          overflow: 'hidden'
 	        }
 	      }, function() {
-	        console.log('loading app', feedList, selectedFeed, unread);
 	        if (feedList.length > 0) {
 	          return $.div({
 	            className: 'rss-reader-container'
@@ -485,7 +470,6 @@
 	            });
 	          });
 	        } else {
-	          console.log('loading');
 	          return $.div("Now loading...");
 	        }
 	      });

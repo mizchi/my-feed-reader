@@ -30,8 +30,6 @@ module.exports = App = React.createClass
         padding: 0
         overflow: 'hidden'
       }, ->
-        console.log 'loading app', feedList, selectedFeed, unread
-
         if feedList.length > 0
           $.div className: 'rss-reader-container', ->
             $.div className: 'left-pane', style: {width: '25%'}, ->
@@ -52,8 +50,6 @@ module.exports = App = React.createClass
               if selectedFeed?
                 $.component Feed, {feed: selectedFeed, entryCursor}
         else
-          console.log 'loading'
-
           $.div """
           Now loading...
           """

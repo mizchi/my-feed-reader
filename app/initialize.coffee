@@ -47,12 +47,12 @@ window.addEventListener 'load', ->
   window.socket = io.connect()
 
   socket.on 'init', (data) ->
-    console.log('init with', data)
+    # console.log('init with', data)
     Actions.init data
     Actions.toggleHelp()
 
   socket.on 'update-feed', ({feedTitle, entries, feedUrl}) ->
-    console.log('update-feed', feedTitle)
+    # console.log('update-feed', feedTitle)
     Actions.updateTitle {feedTitle, entries, feedUrl}
 
   window.app = React.renderComponent (App {}), document.body
