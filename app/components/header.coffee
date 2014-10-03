@@ -12,15 +12,13 @@ module.exports = Header = React.createClass
   render: ->
     {name, unread, showHelp, feedCount, loadedFeedCount} = @props
     Kup ($) =>
-      $.div =>
-        $.span "Reader: mode" + (if unread then 'unread' else 'read')
-        $.span '|'
+      $.div sytle: {outline: '1px solid black'},=>
+        $.span "mode:" + (if unread then 'unread' else 'read')
         if loadedFeedCount < feedCount
           $.span 'Loading...:'
           $.span loadedFeedCount + '/' + feedCount
-        $.button onClick: @onClickHelp, 'help'
-        $.span '|'
-        $.button onClick: @onClickRefresh, 'refresh'
-        $.span '|'
+        $.div ->
+          $.button onClick: @onClickHelp, 'help'
+          $.button onClick: @onClickRefresh, 'refresh'
         if showHelp
           $.component Help, {}

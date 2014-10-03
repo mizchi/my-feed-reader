@@ -1,4 +1,5 @@
 Kup = require('react-kup')(React)
+ProgressBar = require './progress-bar'
 
 Entry = React.createClass
   render: ->
@@ -16,11 +17,10 @@ module.exports = Feed = React.createClass
 
     Kup ($) ->
       $.div ->
-        $.h2 {style: {margin: 0}}, feedTitle
+        progress = (entryCursor+1)/entries.length
+        $.component ProgressBar, {progress}
 
         $.ul className: 'entry-list', ref: 'scrollParent', style: {height: 800, overflow: 'scroll', padding: 0}, ->
-          if entryCursor > 0
-            $.li '<<'+(entryCursor+1)+'/'+entries.length
           for entry, index in entries[entryCursor..]
             selected = index is 0
 
@@ -28,7 +28,7 @@ module.exports = Feed = React.createClass
               className: 'entry'
               key: 'entry-'+index
               style:
-                backgroundColor: if selected then 'yellow' else 'white'
+                backgroundColor: if selected then '#fdffaa' else 'white'
                 listStyleType: 'none'
                 padding: 10
                 maring: 0
