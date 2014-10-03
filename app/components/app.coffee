@@ -9,37 +9,7 @@ Entry = React.createClass
       $.div key: title, ->
         $.h4 title
         $.a href: link, ->
-          # $.img src:"http://b.hatena.ne.jp/bc/#{link}}", className:"bcounter"
           $.img src:"http://b.hatena.ne.jp/entry/image/#{link}",border:0
-
-        # $.span dangerouslySetInnerHTML:{__html: summary}
-        # $.span summary
-
-EntryList = React.createClass
-  render: ->
-    {entries, entryCursor, feedTitle} = @props
-    Kup ($) ->
-      $.ul className: 'entry-list', ref: 'scrollParent', style: {height: 800, overflow: 'scroll', padding: 0}, ->
-        if entryCursor > 0
-          $.li '<<'+(entryCursor+1)+'/'+entries.length
-        for entry, index in entries[entryCursor..]
-          selected = index is 0
-
-          opts =
-            className: 'entry'
-            key: 'entry-'+index
-            style:
-              backgroundColor: if selected then 'yellow' else 'white'
-              listStyleType: 'none'
-              padding: 10
-              maring: 0
-
-          if selected
-            opts.ref = 'selected'
-            opts.className += ' selected'
-
-          $.li opts, ->
-            $.component Entry, entry
 
 Feed = React.createClass
   render: ->
@@ -49,42 +19,28 @@ Feed = React.createClass
     Kup ($) ->
       $.div ->
         $.h2 {style: {margin: 0}}, feedTitle
-        $.component EntryList, {entries, entryCursor, feedTitle}
 
-FeedContainer = React.createClass
-  render: ->
-    {feed, entryCursor} = @props
-    Kup ($) ->
-      $.component Feed, {feed, entryCursor}
+        $.ul className: 'entry-list', ref: 'scrollParent', style: {height: 800, overflow: 'scroll', padding: 0}, ->
+          if entryCursor > 0
+            $.li '<<'+(entryCursor+1)+'/'+entries.length
+          for entry, index in entries[entryCursor..]
+            selected = index is 0
 
-FeedList = React.createClass
-  render: ->
-    {feedList, feedCursor, entryCursor} = @props
-    selectedFeed = feedList[feedCursor]
+            opts =
+              className: 'entry'
+              key: 'entry-'+index
+              style:
+                backgroundColor: if selected then 'yellow' else 'white'
+                listStyleType: 'none'
+                padding: 10
+                maring: 0
 
-    Kup ($) ->
-      $.div className: 'rss-reader-container', ->
-        $.div className: 'left-pane', style: {width: '25%'}, ->
-          if feedCursor > 0
-            $.span '<<'+(feedCursor+1)+'/'+feedList.length
+            if selected
+              opts.ref = 'selected'
+              opts.className += ' selected'
 
-          $.ul className: 'feed-list', ref: 'scrollParent', style: {height: 800}, ->
-
-            for feed, index in feedList[feedCursor..]
-              selected = index is 0
-              opts =
-                key: 'feed-'+index
-                style:
-                  color: if selected then 'red' else 'black'
-              if selected
-                opts.ref = 'selected'
-                opts.className = 'selected-feed'
-
-              $.p opts, feed.feedTitle+"(#{ feed.entries.length })"
-
-        $.div style: {width: '75%'}, ->
-          if selectedFeed?
-            $.component FeedContainer, {feed: selectedFeed, entryCursor: entryCursor}
+            $.li opts, ->
+              $.component Entry, entry
 
 module.exports = App = React.createClass
   getInitialState: -> store
@@ -98,10 +54,10 @@ module.exports = App = React.createClass
   render: ->
     {feedList, feedCursor, entryCursor, unread, showHelp, feedCount} = @state
     loadedFeedCount = feedList.length
+    selectedFeed = feedList[feedCursor]
 
     if unread
       feedList = @state.unreadFeedList
-
 
     Kup ($) ->
       $.div style: {
@@ -113,7 +69,26 @@ module.exports = App = React.createClass
       }, ->
         $.component Header, {name, unread, showHelp, feedCount, loadedFeedCount}
         if feedList.length > 0
-          $.component FeedList, {feedList, feedCursor, entryCursor}
+          $.div className: 'rss-reader-container', ->
+            $.div className: 'left-pane', style: {width: '25%'}, ->
+              if feedCursor > 0
+                $.span '<<'+(feedCursor+1)+'/'+feedList.length
+
+              $.ul className: 'feed-list', ref: 'scrollParent', style: {height: 800}, ->
+                for feed, index in feedList[feedCursor..]
+                  selected = index is 0
+                  opts =
+                    key: 'feed-'+index
+                    style:
+                      color: if selected then 'red' else 'black'
+                  if selected
+                    opts.ref = 'selected'
+                    opts.className = 'selected-feed'
+                  $.p opts, feed.feedTitle+"(#{ feed.entries.length })"
+
+            $.div style: {width: '75%'}, ->
+              if selectedFeed?
+                $.component Feed, {feed: selectedFeed, entryCursor}
         else
           $.div """
           Now loading...

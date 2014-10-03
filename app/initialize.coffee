@@ -28,31 +28,17 @@ initializeStore = ->
     entryCursor: 0
     unread: true
 
-keymap =
-  a: 65
-  s: 83
-  j: 74
-  k: 75
-  o: 79
-  '/': 191
-  u: 85
-  r: 82
-  w: 87
-  h: 72
-  l: 76
-
+MouseTrap = require 'mousetrap'
 setupKeyEvents = ->
-  window.document.body.addEventListener 'keydown', (ev) ->
-    switch parseInt ev.keyCode
-      when keymap.s then Actions.selectNextFeed()
-      when keymap.a then Actions.selectPrevFeed()
-      when keymap.j then Actions.selectNextEntry()
-      when keymap.k then Actions.selectPrevEntry()
-      when keymap.o then Actions.openSelectedEntry()
-      when keymap.u then Actions.toggleUnread()
-      when keymap.r then Actions.requestCrawl()
-      when keymap.h then Actions.toggleHelp()
-      when keymap.l then Actions.refresh()
+  MouseTrap.bind 's', -> Actions.selectNextFeed()
+  MouseTrap.bind 'a', -> Actions.selectPrevFeed()
+  MouseTrap.bind 'j', -> Actions.selectNextEntry()
+  MouseTrap.bind 'k', -> Actions.selectPrevEntry()
+  MouseTrap.bind 'o', -> Actions.openSelectedEntry()
+  MouseTrap.bind 'u', -> Actions.toggleUnread()
+  MouseTrap.bind 'r', -> Actions.requestCrawl()
+  MouseTrap.bind '?', -> Actions.toggleHelp()
+  MouseTrap.bind 'l', -> Actions.refresh()
 
 window.addEventListener 'load', ->
   initializeStore()

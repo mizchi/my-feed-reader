@@ -29,6 +29,7 @@
   "devDependencies": {
     "jquery": "^2.1.1",
     "lodash": "^2.4.1",
+    "mousetrap": "0.0.1",
     "react": "^0.11.2",
     "react-addons": "^0.9.0",
     "react-kup": "^0.3.0"

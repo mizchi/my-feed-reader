@@ -7,25 +7,15 @@ module.exports = Help = React.createClass
         $.h3 'keybind:'
         $.hr()
         $.dl className: 'help', ->
-          $.dt 'h'
-          $.dd  'toggle help'
-
-          $.dt 's'
-          $.dd  'next feed'
-
-          $.dt 'a'
-          $.dd  'previous feed'
-
-          $.dt 'j'
-          $.dd  'next entry'
-
-          $.dt 'k'
-          $.dd  'previous entry'
-
-          $.dt 'r'
-          $.dd  'request crawling to server'
-
-          $.dt 'u'
-          $.dd  'toggle read/unread to show'
-
+          [
+            ['?', 'toggle help']
+            ['s', 'next feed']
+            ['a', 'previous feed']
+            ['j', 'next entry']
+            ['k', 'previous entry']
+            ['r', 'request crawling to server']
+            ['u', 'toggle read/unread mode']
+          ].forEach ([key, content] ) ->
+            $.dt key
+            $.dd content
         $.hr()
