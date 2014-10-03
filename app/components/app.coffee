@@ -4,10 +4,14 @@ Header = require './header'
 
 Entry = React.createClass
   render: ->
-    {title, summary, guid} = @props
+    {title, summary, guid, link} = @props
     Kup ($) ->
       $.div key: title, ->
         $.h4 title
+        $.a href: link, ->
+          # $.img src:"http://b.hatena.ne.jp/bc/#{link}}", className:"bcounter"
+          $.img src:"http://b.hatena.ne.jp/entry/image/#{link}",border:0
+
         # $.span dangerouslySetInnerHTML:{__html: summary}
         # $.span summary
 
@@ -92,7 +96,7 @@ module.exports = App = React.createClass
     @setState store
 
   render: ->
-    {name, feedList, feedCursor, entryCursor, unread, showHelp, feedCount} = @state
+    {feedList, feedCursor, entryCursor, unread, showHelp, feedCount} = @state
     loadedFeedCount = feedList.length
 
     if unread

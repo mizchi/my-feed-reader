@@ -4,6 +4,7 @@ g.React = require 'react'
 require 'react/addons'
 g.moment = require 'moment'
 g._ = require 'lodash'
+g.jQuery = require 'jQuery'
 
 ## Utilities
 {getBrowser} = require './utils'
